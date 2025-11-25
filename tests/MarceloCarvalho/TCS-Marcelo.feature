@@ -30,7 +30,6 @@ Feature: Testes de Endpoints do API_Spotify  - Marcelo Carvalho
     # -----------------------------------------------------------
     # 3. GET /v1/tracks?ids={id1},{id2}
     # Objetivo: Buscar Shape of You e Blinding Lights (Batch)
-    # Substitui o teste de Gêneros que deu erro
     # -----------------------------------------------------------
     Scenario: 3. Buscar várias faixas famosas simultaneamente
         # IDs de Shape of You e Blinding Lights

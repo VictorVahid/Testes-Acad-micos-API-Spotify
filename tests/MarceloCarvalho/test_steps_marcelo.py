@@ -47,7 +47,6 @@ def get_playlist(api_base_url, access_token):
 @when("busco varias faixas")
 def get_several_tracks(api_base_url, access_token):
     headers = {"Authorization": f"Bearer {access_token}"}
-    # Endpoint de Batch Tracks (plural)
     url = f"{api_base_url}/tracks"
     params = {"ids": test_context['tracks_ids']}
     test_context['response'] = requests.get(url, headers=headers, params=params)
