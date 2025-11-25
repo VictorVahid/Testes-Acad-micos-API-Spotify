@@ -29,6 +29,12 @@ def given_query_param_int(param_name, param_value):
         test_context['params'] = {}
     test_context['params'][param_name] = param_value
 
+@given(parsers.parse("defino o parâmetro de query 'ids' como \"{ids_value}\""))
+def given_query_param_ids(ids_value):
+    if 'params' not in test_context:
+        test_context['params'] = {}
+    test_context['params']['ids'] = ids_value
+
 # -------------------- WHENs --------------------
 
 @when("eu busco as faixas do álbum")
@@ -36,17 +42,46 @@ def when_get_album_tracks(api_base_url, access_token):
     headers = {"Authorization": f"Bearer {access_token}"}
     url = f"{api_base_url}/albums/{test_context['album_id']}/tracks"
     test_context['response'] = requests.get(url, headers=headers)
+
+@when("eu busco os detalhes da playlist")
+def when_get_playlist_details(api_base_url, access_token):
+    url = f"{api_base_url}/playlists/{test_context['playlist_id']}"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json"
+    }
+    test_context['response'] = requests.get(url, headers=headers)
     
 @when("eu busco as faixas da playlist")
 def when_get_playlist_tracks(api_base_url, access_token):
     headers = {"Authorization": f"Bearer {access_token}"}
     url = f"{api_base_url}/playlists/{test_context['playlist_id']}/tracks"
     test_context['response'] = requests.get(url, headers=headers)
+
+@when("eu busco os detalhes do álbum")
+def when_get_album_details(api_base_url, access_token):
+    url = f"{api_base_url}/albums/{test_context['album_id']}"
+    headers = {"Authorization": f"Bearer {access_token}"}
+    test_context['response'] = requests.get(url, headers=headers)
     
 @when("eu busco os episódios do show")
 def when_get_show_episodes(api_base_url, access_token):
-    # Endpoint documentado: /v1/shows/{id}/episodes
     url = f"{api_base_url}/shows/{test_context['show_id']}/episodes"
+    
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json"
+    }
+    
+    test_context['response'] = requests.get(
+        url, 
+        headers=headers, 
+        params=test_context.get('params', {})
+    )
+
+@when("eu busco múltiplos álbuns")
+def when_get_multiple_albums(api_base_url, access_token):
+    url = f"{api_base_url}/albums"
     
     headers = {
         "Authorization": f"Bearer {access_token}",
@@ -142,3 +177,24 @@ def then_check_first_item_field(field):
     if len(items) > 0:
         val = items[0].get(field)
         assert val is not None and val != "", f"O campo '{field}' está vazio no primeiro item."
+
+@then(parsers.parse("todos os itens da lista devem ter o campo '{field}' igual a '{expected_value}'"))
+def then_check_field_value_all_items(field, expected_value):
+    data = test_context['response'].json()
+    albums = data.get('albums', [])
+    
+    for album in albums:
+        if album:
+            assert album.get(field) == expected_value, \
+                f"Erro no álbum {album.get('id')}: Campo '{field}' é '{album.get(field)}', esperava '{expected_value}'"
+
+@then(parsers.parse("cada item da lista deve possuir o campo '{field}' com um valor numérico"))
+def then_check_field_is_numeric(field):
+    data = test_context['response'].json()
+    albums = data.get('albums', [])
+    
+    for album in albums:
+        if album:
+            value = album.get(field)
+            assert isinstance(value, int), \
+                f"Erro no álbum {album.get('name')}: O campo '{field}' não é numérico ({type(value)})"
